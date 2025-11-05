@@ -1,0 +1,17 @@
+pre-commit:
+  jobs:
+    - name: format staged
+      run: npx lint-staged
+
+pre-push:
+  jobs:
+    - name: format staged
+      run: npx lint-staged
+
+prepare-commit-msg:
+  commands:
+    commitzen:
+      interactive: true
+      run: npx cz
+      env:
+        LEFTHOOK: 0
