@@ -1,11 +1,15 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
-import type { LoaderFunctionArgs } from "react-router";
+import { useLoaderData, type LoaderFunctionArgs } from "react-router";
 import prisma from "~/db.server";
 
-export function loader(args: LoaderFunctionArgs) {
-  const _dbClient = prisma;
-  return null;
+export async function loader(args: LoaderFunctionArgs) {
+  const mailAccount = await prisma.mailAccount.findFirst();
+
+  if (mailAccount === null) {
+    return null;
+  }
+
+  return mailAccount;
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -16,5 +20,11 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <Welcome />;
+  const loaderData = useLoaderData<typeof loader>();
+
+  if (loaderData === null) {
+    return <div>No mail account configured.</div>;
+  }
+
+  return <div>{loaderData.email}</div>;
 }

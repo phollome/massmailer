@@ -1,8 +1,18 @@
 datasource db {
     provider = "sqlite"
-    url      = "file:./dev.db"
+    url      = env("DATABASE_URL")
 }
 
 generator client {
     provider = "prisma-client-js"
+}
+
+model MailAccount {
+    id        String   @id @default(uuid())
+    email     String   @unique
+    password  String
+    host      String
+    port      Int
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 }
