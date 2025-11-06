@@ -1,8 +1,8 @@
-import { Callout } from "@radix-ui/themes";
-import type { Route } from "./+types/home";
-import { useLoaderData, type LoaderFunctionArgs } from "react-router";
-import prisma from "~/db.server";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { Callout, Link as LinkStyle } from "@radix-ui/themes";
+import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router";
+import prisma from "~/db.server";
+import type { Route } from "./+types/home";
 
 export async function loader(args: LoaderFunctionArgs) {
   const mailAccount = await prisma.mailAccount.findFirst();
@@ -30,7 +30,14 @@ export default function Home() {
         <Callout.Icon>
           <InfoCircledIcon />
         </Callout.Icon>
-        <Callout.Text>No mail account configured.</Callout.Text>
+        <Callout.Text>
+          No mail account configured.{" "}
+          <LinkStyle asChild>
+            <Link to="/accounts/configure" className="Link">
+              Configure account
+            </Link>
+          </LinkStyle>
+        </Callout.Text>
       </Callout.Root>
     );
   }

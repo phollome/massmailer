@@ -19,6 +19,23 @@ test("no account configured", async () => {
   await waitFor(() => screen.getByText("No mail account configured."));
 });
 
+test("configure account", async () => {
+  const HomeStub = createRoutesStub([
+    {
+      path: "/",
+      Component: Home,
+      loader,
+      HydrateFallback: () => <div>Loading...</div>,
+    },
+  ]);
+
+  render(<HomeStub />);
+
+  await waitFor(() => {
+    screen.getByText("Configure account");
+  });
+});
+
 test("account configured", async () => {
   await prisma.mailAccount.create({
     data: {

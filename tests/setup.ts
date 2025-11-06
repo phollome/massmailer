@@ -1,6 +1,6 @@
-import { beforeAll } from "vitest";
+import { beforeEach } from "vitest";
 import prisma from "~/db.server";
 
-beforeAll(async () => {
+beforeEach(async () => {
   await prisma.mailAccount.deleteMany();
 });
