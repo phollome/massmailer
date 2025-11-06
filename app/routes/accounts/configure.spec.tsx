@@ -1,9 +1,10 @@
 import { createRoutesStub } from "react-router";
 import ConfigureAccount, { loader, action } from "./configure";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { test } from "vitest";
-import { act } from "react";
+import { expect, test } from "vitest";
 import Home from "../home";
+import prisma from "~/db.server";
+import { act } from "react";
 
 test("failed validation (empty)", async () => {
   const Stub = createRoutesStub([
@@ -108,10 +109,10 @@ test("successful submission", async () => {
   });
   await act(async () => submit.click());
 
-  // Since we redirect on success, we can check that the form is no longer in the document
-  await waitFor(() => {
-    if (screen.queryByLabelText("Email")) {
-      throw new Error("Form still present, submission may have failed");
-    }
+  await waitFor(async () => {
+    const account = await prisma.mailAccount.findUnique({
+      where: { email: "test@example.com" },
+    });
+    expect(account).not.toBeNull();
   });
 });
