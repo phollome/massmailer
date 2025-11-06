@@ -7,24 +7,27 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-import type { Route } from "./+types/root";
 import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
-
-export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-];
+import { useEffect, useState } from "react";
+import type { Route } from "./+types/root";
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const [appearance, setAppearance] = useState<"light" | "dark">("dark");
+
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia !== "undefined"
+    ) {
+      setAppearance(
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light",
+      );
+    }
+  }, []);
+
   return (
     <html lang="en">
       <head>
@@ -34,11 +37,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <Theme>
-          {children}
-          <ScrollRestoration />
-          <Scripts />
-        </Theme>
+        <Theme appearance={appearance}>{children}</Theme>
+        <ScrollRestoration />
+        <Scripts />
       </body>
     </html>
   );
