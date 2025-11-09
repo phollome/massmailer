@@ -1,6 +1,18 @@
-import { getFormProps, getInputProps, useForm } from "@conform-to/react";
+import {
+  getFormProps,
+  getInputProps,
+  getTextareaProps,
+  useForm,
+} from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { Button, Container, Flex, Text, TextField } from "@radix-ui/themes";
+import {
+  Button,
+  Container,
+  Flex,
+  Text,
+  TextArea,
+  TextField,
+} from "@radix-ui/themes";
 import {
   Form,
   redirect,
@@ -11,7 +23,12 @@ import { z } from "zod";
 import prisma from "~/db.server";
 
 const schema = z.object({
-  email: z.email({ message: "Invalid email address" }),
+  subject: z
+    .string({ message: "Subject is required" })
+    .min(1, { message: "Subject is required" }),
+  body: z
+    .string({ message: "Body is required" })
+    .min(1, { message: "Body is required" }),
 });
 
 export async function loader() {
@@ -24,15 +41,17 @@ export async function action(args: ActionFunctionArgs) {
   const submission = await parseWithZod(formData, {
     schema: schema.transform(async (data, context) => {
       try {
-        await prisma.contact.create({
+        await prisma.mail.create({
           data: {
-            email: data.email,
+            subject: data.subject,
+            body: data.body,
           },
         });
       } catch (error) {
+        console.error(error);
         context.addIssue({
           code: "custom",
-          message: "Failed to create contact",
+          message: "Failed to create mail",
         });
         return z.NEVER;
       }
@@ -48,13 +67,14 @@ export async function action(args: ActionFunctionArgs) {
   return redirect("/");
 }
 
-function AddContact() {
+function AddMail() {
   const actionData = useActionData<typeof action>();
 
   const [form, fields] = useForm({
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
-    onValidate({ formData }) {
+    onValidate: function (args: { formData: FormData }) {
+      const { formData } = args;
       return parseWithZod(formData, { schema });
     },
     lastResult: actionData,
@@ -64,14 +84,26 @@ function AddContact() {
     <Container size="2">
       <Form method="post" {...getFormProps(form)}>
         <Flex gap="2" direction="column">
-          <Text as="label" size="2" weight="bold" htmlFor={fields.email.id}>
-            Email
+          <Text as="label" size="2" weight="bold" htmlFor={fields.subject.id}>
+            Subject
           </Text>
-          <TextField.Root {...getInputProps(fields.email, { type: "email" })} />
-          {Array.isArray(fields.email.errors) &&
-            fields.email.errors.length > 0 && (
+          <TextField.Root
+            {...getInputProps(fields.subject, { type: "text" })}
+          />
+          {Array.isArray(fields.subject.errors) &&
+            fields.subject.errors.length > 0 && (
               <Text color="red" size="1">
-                {fields.email.errors}
+                {fields.subject.errors}
+              </Text>
+            )}
+          <Text as="label" size="2" weight="bold" htmlFor={fields.body.id}>
+            Body
+          </Text>
+          <TextArea {...getTextareaProps(fields.body)} />
+          {Array.isArray(fields.body.errors) &&
+            fields.body.errors.length > 0 && (
+              <Text color="red" size="1">
+                {fields.body.errors}
               </Text>
             )}
           <Button type="submit">Submit</Button>
@@ -86,4 +118,4 @@ function AddContact() {
   );
 }
 
-export default AddContact;
+export default AddMail;

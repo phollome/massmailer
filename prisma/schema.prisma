@@ -23,3 +23,12 @@ model Contact {
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 }
+
+model Mail {
+    id        String    @id @default(uuid())
+    subject   String
+    body      String
+    sentAt    DateTime? @map("sent_at")
+    createdAt DateTime  @default(now()) @map("created_at")
+    updatedAt DateTime  @updatedAt @map("updated_at")
+}
