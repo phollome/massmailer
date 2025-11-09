@@ -48,7 +48,7 @@ export async function action(args: ActionFunctionArgs) {
   return redirect("/");
 }
 
-function AddContacts() {
+function AddContact() {
   const actionData = useActionData();
 
   const [form, fields] = useForm({
@@ -86,4 +86,4 @@ function AddContacts() {
   );
 }
 
-export default AddContacts;
+export default AddContact;

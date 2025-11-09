@@ -61,7 +61,7 @@ export async function action(args: ActionFunctionArgs) {
   return redirect("/");
 }
 
-function ConfigureAccount() {
+function AddAccount() {
   const actionData = useActionData<typeof action>();
 
   const [form, fields] = useForm({
@@ -131,4 +131,4 @@ function ConfigureAccount() {
   );
 }
 
-export default ConfigureAccount;
+export default AddAccount;

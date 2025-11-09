@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react";
 import { createRoutesStub } from "react-router";
 import { expect, test } from "vitest";
-import AddContacts, { loader, action } from "./add";
+import AddContact, { loader, action } from "./add";
 import Home from "../home";
 import prisma from "~/db.server";
 
@@ -15,7 +15,7 @@ test("failed validation", async () => {
   const Stub = createRoutesStub([
     {
       path: "/",
-      Component: AddContacts,
+      Component: AddContact,
       loader,
       HydrateFallback: () => <div>Loading...</div>,
     },
@@ -41,7 +41,7 @@ test("successful submission", async () => {
     },
     {
       path: "/contacts/add",
-      Component: AddContacts,
+      Component: AddContact,
       loader,
       action,
       HydrateFallback: () => <div>Loading...</div>,

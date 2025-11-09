@@ -1,5 +1,5 @@
 import { createRoutesStub } from "react-router";
-import ConfigureAccount, { loader, action } from "./configure";
+import AddAccount, { loader, action } from "./add";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, test } from "vitest";
 import Home from "../home";
@@ -10,7 +10,7 @@ test("failed validation (empty)", async () => {
   const Stub = createRoutesStub([
     {
       path: "/",
-      Component: ConfigureAccount,
+      Component: AddAccount,
       loader,
       HydrateFallback: () => <div>Loading...</div>,
     },
@@ -32,7 +32,7 @@ test("failed validation (invalid values)", async () => {
   const Stub = createRoutesStub([
     {
       path: "/",
-      Component: ConfigureAccount,
+      Component: AddAccount,
       loader,
       HydrateFallback: () => <div>Loading...</div>,
     },
@@ -79,7 +79,7 @@ test("successful submission", async () => {
     },
     {
       path: "/accounts/configure",
-      Component: ConfigureAccount,
+      Component: AddAccount,
       loader,
       action,
       HydrateFallback: () => <div>Loading...</div>,

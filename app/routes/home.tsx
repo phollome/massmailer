@@ -33,7 +33,7 @@ export default function Home() {
         <Callout.Text>
           No mail account configured.{" "}
           <LinkStyle asChild>
-            <Link to="/accounts/configure" className="Link">
+            <Link to="/accounts/add" className="Link">
               Configure account
             </Link>
           </LinkStyle>
