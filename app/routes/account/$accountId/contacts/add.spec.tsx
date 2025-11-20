@@ -6,22 +6,38 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { createRoutesStub } from "react-router";
-import { expect, test } from "vitest";
+import { afterEach, beforeEach, expect, test } from "vitest";
 import AddContact, { loader, action } from "./add";
-import Home from "../home";
+import Home from "~/routes/home";
 import prisma from "~/db.server";
+
+beforeEach(async () => {
+  await prisma.account.create({
+    data: {
+      id: "1",
+      email: "account@example.com",
+      password: "password",
+      host: "smtp.example.com",
+      port: 587,
+    },
+  });
+});
+
+afterEach(async () => {
+  await prisma.account.deleteMany();
+});
 
 test("failed validation", async () => {
   const Stub = createRoutesStub([
     {
-      path: "/",
+      path: "/:accountId/contacts/add",
       Component: AddContact,
       loader,
       HydrateFallback: () => <div>Loading...</div>,
     },
   ]);
 
-  render(<Stub />);
+  render(<Stub initialEntries={["/1/contacts/add"]} />);
 
   const submit = await waitFor(() =>
     screen.getByRole("button", { name: "Submit" }),
@@ -34,21 +50,17 @@ test("failed validation", async () => {
 test("successful submission", async () => {
   const Stub = createRoutesStub([
     {
-      path: "/",
-      Component: Home,
-      loader: () => null,
-      HydrateFallback: () => <div>Loading...</div>,
-    },
-    {
-      path: "/contacts/add",
+      path: "/:accountId/contacts/add",
       Component: AddContact,
       loader,
       action,
-      HydrateFallback: () => <div>Loading...</div>,
+      HydrateFallback: () => {
+        return <div>Loading...</div>;
+      },
     },
   ]);
 
-  render(<Stub initialEntries={["/contacts/add"]} />);
+  render(<Stub initialEntries={["/1/contacts/add"]} />);
 
   const email = await waitFor(() => screen.getByLabelText("Email"));
   await act(async () => {
@@ -60,7 +72,7 @@ test("successful submission", async () => {
   await act(async () => submit.click());
 
   await waitFor(async () => {
-    const contact = await prisma.contact.findUnique({
+    const contact = await prisma.contact.findFirst({
       where: { email: "contact@example.com" },
     });
 

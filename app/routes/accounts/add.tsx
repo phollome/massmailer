@@ -33,8 +33,9 @@ export async function action(args: ActionFunctionArgs) {
   const formData = await request.formData();
   const submission = await parseWithZod(formData, {
     schema: schema.transform(async (data, context) => {
+      let id: string;
       try {
-        await prisma.mailAccount.create({
+        const account = await prisma.account.create({
           data: {
             email: data.email,
             password: data.password,
@@ -42,6 +43,7 @@ export async function action(args: ActionFunctionArgs) {
             port: data.port,
           },
         });
+        id = account.id;
       } catch (error) {
         context.addIssue({
           code: "custom",
@@ -49,7 +51,7 @@ export async function action(args: ActionFunctionArgs) {
         });
         return z.NEVER;
       }
-      return data;
+      return { ...data, id };
     }),
     async: true,
   });
@@ -58,7 +60,7 @@ export async function action(args: ActionFunctionArgs) {
     return submission.reply();
   }
 
-  return redirect("/");
+  return redirect(`/account/${submission.value.id}`);
 }
 
 function AddAccount() {

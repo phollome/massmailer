@@ -5,6 +5,7 @@ import { expect, test } from "vitest";
 import Home from "../home";
 import prisma from "~/db.server";
 import { act } from "react";
+import Account, { loader as accountLoader } from "../account/$accountId";
 
 test("failed validation (empty)", async () => {
   const Stub = createRoutesStub([
@@ -74,18 +75,32 @@ test("successful submission", async () => {
     {
       path: "/",
       Component: Home,
-      loader: async () => null,
-      HydrateFallback: () => <div>Loading...</div>,
+      loader: async () => {
+        return { accounts: [] };
+      },
+      HydrateFallback: () => {
+        return <div>Loading...</div>;
+      },
     },
     {
-      path: "/accounts/configure",
+      path: "/accounts/add",
       Component: AddAccount,
       loader,
       action,
-      HydrateFallback: () => <div>Loading...</div>,
+      HydrateFallback: () => {
+        return <div>Loading...</div>;
+      },
+    },
+    {
+      path: "/account/:accountId",
+      Component: Account,
+      loader: accountLoader,
+      HydrateFallback: () => {
+        return <div>Loading...</div>;
+      },
     },
   ]);
-  render(<Stub initialEntries={["/accounts/configure"]} />);
+  render(<Stub initialEntries={["/accounts/add"]} />);
 
   const email = await waitFor(() => screen.getByLabelText("Email"));
   await act(async () => {
@@ -110,7 +125,7 @@ test("successful submission", async () => {
   await act(async () => submit.click());
 
   await waitFor(async () => {
-    const account = await prisma.mailAccount.findUnique({
+    const account = await prisma.account.findUnique({
       where: { email: "test@example.com" },
     });
     expect(account).not.toBeNull();

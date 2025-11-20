@@ -1,5 +1,6 @@
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
+import { invariantResponse } from "@epic-web/invariant";
 import { Button, Container, Flex, Text, TextField } from "@radix-ui/themes";
 import {
   Form,
@@ -19,7 +20,12 @@ export async function loader() {
 }
 
 export async function action(args: ActionFunctionArgs) {
-  const { request } = args;
+  const { request, params } = args;
+
+  const accountId = params.accountId;
+
+  invariantResponse(accountId, "Account ID is required", { status: 400 });
+
   const formData = await request.formData();
   const submission = await parseWithZod(formData, {
     schema: schema.transform(async (data, context) => {
@@ -27,6 +33,7 @@ export async function action(args: ActionFunctionArgs) {
         await prisma.contact.create({
           data: {
             email: data.email,
+            accountId: accountId,
           },
         });
       } catch (error) {
@@ -45,7 +52,7 @@ export async function action(args: ActionFunctionArgs) {
     return submission.reply();
   }
 
-  return redirect("/");
+  return redirect("./");
 }
 
 function AddContact() {

@@ -5,13 +5,9 @@ import prisma from "~/db.server";
 import type { Route } from "./+types/home";
 
 export async function loader(args: LoaderFunctionArgs) {
-  const mailAccount = await prisma.mailAccount.findFirst();
+  const accounts = await prisma.account.findMany();
 
-  if (mailAccount === null) {
-    return null;
-  }
-
-  return mailAccount;
+  return { accounts };
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -24,7 +20,7 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const loaderData = useLoaderData<typeof loader>();
 
-  if (loaderData === null) {
+  if (loaderData.accounts.length === 0) {
     return (
       <Callout.Root color="red">
         <Callout.Icon>
@@ -42,5 +38,11 @@ export default function Home() {
     );
   }
 
-  return <div>{loaderData.email}</div>;
+  return (
+    <ul>
+      {loaderData.accounts.map((account) => {
+        return <li key={account.id}>{account.email}</li>;
+      })}
+    </ul>
+  );
 }

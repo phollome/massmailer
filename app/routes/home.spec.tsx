@@ -17,33 +17,25 @@ test("no account configured", async () => {
   render(<HomeStub />);
 
   await waitFor(() => screen.getByText("No mail account configured."));
+  await waitFor(() => screen.getByRole("link", { name: "Configure account" }));
 });
 
-test("configure account", async () => {
-  const HomeStub = createRoutesStub([
-    {
-      path: "/",
-      Component: Home,
-      loader,
-      HydrateFallback: () => <div>Loading...</div>,
-    },
-  ]);
-
-  render(<HomeStub />);
-
-  await waitFor(() => {
-    screen.getByText("Configure account");
-  });
-});
-
-test("account configured", async () => {
-  await prisma.mailAccount.create({
-    data: {
-      email: "mail@example.com",
-      password: "password",
-      host: "smtp.example.com",
-      port: 587,
-    },
+test("accounts configured", async () => {
+  await prisma.account.createMany({
+    data: [
+      {
+        email: "mail@example.com",
+        password: "password",
+        host: "smtp.example.com",
+        port: 587,
+      },
+      {
+        email: "other@example.com",
+        password: "password",
+        host: "smtp.example.com",
+        port: 587,
+      },
+    ],
   });
 
   const HomeStub = createRoutesStub([
@@ -58,4 +50,5 @@ test("account configured", async () => {
   render(<HomeStub />);
 
   await waitFor(() => screen.getByText("mail@example.com"));
+  await waitFor(() => screen.getByText("other@example.com"));
 });
