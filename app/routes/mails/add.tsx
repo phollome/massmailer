@@ -40,13 +40,15 @@ export async function action(args: ActionFunctionArgs) {
   const formData = await request.formData();
   const submission = await parseWithZod(formData, {
     schema: schema.transform(async (data, context) => {
+      let id: string;
       try {
-        await prisma.mail.create({
+        const mail = await prisma.mail.create({
           data: {
             subject: data.subject,
             body: data.body,
           },
         });
+        id = mail.id;
       } catch (error) {
         console.error(error);
         context.addIssue({
@@ -55,7 +57,7 @@ export async function action(args: ActionFunctionArgs) {
         });
         return z.NEVER;
       }
-      return data;
+      return { ...data, id };
     }),
     async: true,
   });
@@ -64,7 +66,7 @@ export async function action(args: ActionFunctionArgs) {
     return submission.reply();
   }
 
-  return redirect("/");
+  return redirect("/mail/" + submission.value.id);
 }
 
 function AddMail() {

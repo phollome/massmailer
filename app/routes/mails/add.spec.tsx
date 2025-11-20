@@ -47,6 +47,12 @@ test("successful submission", async () => {
       action,
       HydrateFallback: () => <div>Loading...</div>,
     },
+    {
+      path: "/mail/:id",
+      Component: AddMail,
+      loader: () => null,
+      HydrateFallback: () => <div>Loading...</div>,
+    },
   ]);
 
   render(<Stub initialEntries={["/mails/add"]} />);

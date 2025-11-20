@@ -5,4 +5,5 @@ export default [
   route("/accounts/add", "routes/accounts/add.tsx"),
   route("/contacts/add", "routes/contacts/add.tsx"),
   route("/mails/add", "routes/mails/add.tsx"),
+  route("/mail/:id", "routes/mail/$id.tsx"),
 ] satisfies RouteConfig;
