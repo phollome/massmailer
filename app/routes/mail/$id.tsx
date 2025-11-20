@@ -1,4 +1,4 @@
-import { redirect, type LoaderFunctionArgs } from "react-router";
+import { redirect, useLoaderData, type LoaderFunctionArgs } from "react-router";
 import { invariantResponse } from "@epic-web/invariant";
 import prisma from "~/db.server";
 
@@ -14,7 +14,7 @@ export async function loader(args: LoaderFunctionArgs) {
     status: 404,
   });
 
-  return { id };
+  return { mail };
 }
 
 export async function action(args: LoaderFunctionArgs) {
@@ -25,7 +25,14 @@ export async function action(args: LoaderFunctionArgs) {
 }
 
 function Mail() {
-  return <div>Mail Detail Page</div>;
+  const loaderData = useLoaderData<typeof loader>();
+
+  return (
+    <>
+      <h1>{loaderData.mail.subject}</h1>
+      <p>{loaderData.mail.body}</p>
+    </>
+  );
 }
 
 export default Mail;
