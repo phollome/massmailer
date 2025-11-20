@@ -1,3 +1,4 @@
+import { randEmail, randNumber, randUuid } from "@ngneat/falso";
 import {
   act,
   fireEvent,
@@ -6,26 +7,10 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { createRoutesStub } from "react-router";
-import { afterEach, beforeEach, expect, test } from "vitest";
-import AddContact, { loader, action } from "./add";
-import Home from "~/routes/home";
+import { expect, test } from "vitest";
 import prisma from "~/db.server";
-
-beforeEach(async () => {
-  await prisma.account.create({
-    data: {
-      id: "1",
-      email: "account@example.com",
-      password: "password",
-      host: "smtp.example.com",
-      port: 587,
-    },
-  });
-});
-
-afterEach(async () => {
-  await prisma.account.deleteMany();
-});
+import AddContact, { action, loader } from "./add";
+import { getRandomAccount } from "tests/utils";
 
 test("failed validation", async () => {
   const Stub = createRoutesStub([
@@ -33,7 +18,9 @@ test("failed validation", async () => {
       path: "/:accountId/contacts/add",
       Component: AddContact,
       loader,
-      HydrateFallback: () => <div>Loading...</div>,
+      HydrateFallback: () => {
+        return <div>Loading...</div>;
+      },
     },
   ]);
 
@@ -48,6 +35,10 @@ test("failed validation", async () => {
 });
 
 test("successful submission", async () => {
+  const account = await prisma.account.create({
+    data: getRandomAccount(),
+  });
+
   const Stub = createRoutesStub([
     {
       path: "/:accountId/contacts/add",
@@ -60,11 +51,12 @@ test("successful submission", async () => {
     },
   ]);
 
-  render(<Stub initialEntries={["/1/contacts/add"]} />);
+  render(<Stub initialEntries={[`/${account.id}/contacts/add`]} />);
 
-  const email = await waitFor(() => screen.getByLabelText("Email"));
+  const email = randEmail();
+  const emailInput = await waitFor(() => screen.getByLabelText("Email"));
   await act(async () => {
-    fireEvent.input(email, { target: { value: "contact@example.com" } });
+    fireEvent.input(emailInput, { target: { value: email } });
   });
   const submit = await waitFor(() =>
     screen.getByRole("button", { name: "Submit" }),
@@ -73,7 +65,7 @@ test("successful submission", async () => {
 
   await waitFor(async () => {
     const contact = await prisma.contact.findFirst({
-      where: { email: "contact@example.com" },
+      where: { email: email },
     });
 
     expect(contact).not.toBeNull();

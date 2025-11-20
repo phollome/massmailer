@@ -1,9 +1,11 @@
-import { createRoutesStub } from "react-router";
-import Account, { loader } from "./$accountId";
-import { ErrorBoundary } from "~/root";
-import { afterEach, beforeEach, test } from "vitest";
+import { randEmail, randUuid } from "@ngneat/falso";
 import { render, screen, waitFor } from "@testing-library/react";
+import { createRoutesStub } from "react-router";
+import { getRandomAccount } from "tests/utils";
+import { afterEach, test } from "vitest";
 import prisma from "~/db.server";
+import { ErrorBoundary } from "~/root";
+import Account, { loader } from "./$accountId";
 
 afterEach(async () => {
   await prisma.account.deleteMany();
@@ -26,27 +28,23 @@ test("account not found", async () => {
 });
 
 test("account home", async () => {
-  await prisma.account.create({
-    data: {
-      id: "1",
-      email: "test@example.com",
-      password: "password",
-      host: "smtp.example.com",
-      port: 587,
-    },
+  const account = await prisma.account.create({
+    data: getRandomAccount(),
   });
 
   const Stub = createRoutesStub([
     {
-      path: "/account/1",
+      path: `/account/:accountId`,
       loader,
       Component: Account,
       ErrorBoundary: ErrorBoundary,
-      HydrateFallback: () => <div>Loading...</div>,
+      HydrateFallback: () => {
+        return <div>Loading...</div>;
+      },
     },
   ]);
 
-  render(<Stub initialEntries={["/account/1"]} />);
+  render(<Stub initialEntries={[`/account/${account.id}`]} />);
 
-  await waitFor(() => screen.getByText("test@example.com"));
+  await waitFor(() => screen.getByText(account.email));
 });

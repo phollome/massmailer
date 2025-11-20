@@ -1,8 +1,9 @@
-import { test, expect } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { createRoutesStub } from "react-router";
-import Home, { loader } from "./home";
+import { getRandomAccount } from "tests/utils";
+import { test } from "vitest";
 import prisma from "~/db.server";
+import Home, { loader } from "./home";
 
 test("no account configured", async () => {
   const HomeStub = createRoutesStub([
@@ -21,21 +22,10 @@ test("no account configured", async () => {
 });
 
 test("accounts configured", async () => {
+  const account1 = getRandomAccount();
+  const account2 = getRandomAccount();
   await prisma.account.createMany({
-    data: [
-      {
-        email: "mail@example.com",
-        password: "password",
-        host: "smtp.example.com",
-        port: 587,
-      },
-      {
-        email: "other@example.com",
-        password: "password",
-        host: "smtp.example.com",
-        port: 587,
-      },
-    ],
+    data: [account1, account2],
   });
 
   const HomeStub = createRoutesStub([
@@ -49,6 +39,6 @@ test("accounts configured", async () => {
 
   render(<HomeStub />);
 
-  await waitFor(() => screen.getByText("mail@example.com"));
-  await waitFor(() => screen.getByText("other@example.com"));
+  await waitFor(() => screen.getByText(account1.email));
+  await waitFor(() => screen.getByText(account2.email));
 });
