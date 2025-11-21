@@ -6,10 +6,10 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { createRoutesStub } from "react-router";
+import { getRandomAccount } from "tests/utils";
 import { expect, test } from "vitest";
-import AddMail, { loader, action } from "./add";
-import Home from "../home";
 import prisma from "~/db.server";
+import AddMail, { action, loader } from "./add";
 
 test("failed validation", async () => {
   const Stub = createRoutesStub([
@@ -33,15 +33,13 @@ test("failed validation", async () => {
 });
 
 test("successful submission", async () => {
+  const account = await prisma.account.create({
+    data: getRandomAccount(),
+  });
+
   const Stub = createRoutesStub([
     {
-      path: "/",
-      Component: Home,
-      loader: () => null,
-      HydrateFallback: () => <div>Loading...</div>,
-    },
-    {
-      path: "/mails/add",
+      path: "/account/:accountId/mails/add",
       Component: AddMail,
       loader,
       action,
@@ -55,7 +53,7 @@ test("successful submission", async () => {
     },
   ]);
 
-  render(<Stub initialEntries={["/mails/add"]} />);
+  render(<Stub initialEntries={[`/account/${account.id}/mails/add`]} />);
 
   const subject = await waitFor(() => screen.getByLabelText("Subject"));
   const body = await waitFor(() => screen.getByLabelText("Body"));

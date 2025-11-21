@@ -41,7 +41,15 @@ export default function Home() {
   return (
     <ul>
       {loaderData.accounts.map((account) => {
-        return <li key={account.id}>{account.email}</li>;
+        return (
+          <li key={account.id}>
+            <LinkStyle asChild>
+              <Link to={`/account/${account.id}/contacts`}>
+                {account.email}
+              </Link>
+            </LinkStyle>
+          </li>
+        );
       })}
     </ul>
   );

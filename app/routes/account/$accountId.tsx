@@ -1,5 +1,10 @@
 import { invariantResponse } from "@epic-web/invariant";
-import { useLoaderData, type LoaderFunctionArgs } from "react-router";
+import {
+  NavLink,
+  Outlet,
+  useLoaderData,
+  type LoaderFunctionArgs,
+} from "react-router";
 import prisma from "~/db.server";
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -17,7 +22,16 @@ export async function loader(args: LoaderFunctionArgs) {
 
 function Account() {
   const loaderData = useLoaderData<typeof loader>();
-  return <div>{loaderData.account.email}</div>;
+  return (
+    <>
+      <div>
+        {loaderData.account.email}
+        <NavLink to="./mails">Mails</NavLink>
+        <NavLink to="./contacts">Contacts</NavLink>
+        <Outlet />
+      </div>
+    </>
+  );
 }
 
 export default Account;

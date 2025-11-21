@@ -77,6 +77,9 @@ function AddAccount() {
 
   return (
     <Container size="2">
+      <Text size="4" weight="bold">
+        Add Account
+      </Text>
       <Form method="post" {...getFormProps(form)}>
         <Flex gap="2" direction="column">
           <Text as="label" size="2" weight="bold" htmlFor={fields.email.id}>
