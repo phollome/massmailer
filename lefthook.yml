@@ -5,8 +5,12 @@ pre-commit:
 
 pre-push:
   jobs:
-    - name: format staged
-      run: npx lint-staged
+    - name: type check
+      run: npm run typecheck
+    - name: run unit tests
+      run: npm test
+    - name: run e2e tests
+      run: npm run e2e
 
 prepare-commit-msg:
   commands:

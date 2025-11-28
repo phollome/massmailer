@@ -8,7 +8,8 @@
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "prepare": "lefthook install",
-    "test": "env-cmd -f .env.test -- npx prisma db push && env-cmd -f .env.test -- vitest",
+    "test": "env-cmd -f .env.test -- npx prisma db push && env-cmd -f .env.test -- vitest run --no-file-parallelism",
+    "test:watch": "env-cmd -f .env.test -- npx prisma db push && env-cmd -f .env.test -- vitest watch --no-file-parallelism",
     "e2e": "env-cmd -f .env.e2e -- npx prisma db push && env-cmd -f .env.e2e -- playwright test",
     "e2e:ui": "npm run e2e -- --ui"
   },
