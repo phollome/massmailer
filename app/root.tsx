@@ -7,7 +7,15 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-import { Theme } from "@radix-ui/themes";
+import {
+  Box,
+  Code,
+  Container,
+  Flex,
+  Heading,
+  Text,
+  Theme,
+} from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { useEffect, useState } from "react";
 import type { Route } from "./+types/root";
@@ -38,7 +46,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <Theme appearance={appearance}>{children}</Theme>
+        <Theme appearance={appearance} radius="large">
+          {children}
+        </Theme>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -46,8 +56,36 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AppContainer(props: { children: React.ReactNode }) {
+  return (
+    <Container size={"1"}>
+      <Flex
+        direction="row"
+        justify="center"
+        align="center"
+        p="4"
+        minHeight="100vh"
+      >
+        <Box
+          className="rounded-xl border w-full h-full p-6"
+          style={{
+            backgroundColor: "var(--accent-2)",
+            borderColor: "var(--accent-6)",
+          }}
+        >
+          {props.children}
+        </Box>
+      </Flex>
+    </Container>
+  );
+}
+
 export default function App() {
-  return <Outlet />;
+  return (
+    <AppContainer>
+      <Outlet />
+    </AppContainer>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
@@ -68,14 +106,16 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
+    <AppContainer>
+      <Heading size="5" as="h1">
+        {message}
+      </Heading>
+      <Text as="p">{details}</Text>
+      {typeof stack !== "undefined" && (
+        <Code color="crimson" wrap="balance">
+          {stack}
+        </Code>
       )}
-    </main>
+    </AppContainer>
   );
 }

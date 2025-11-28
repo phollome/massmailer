@@ -3,19 +3,19 @@ import { createRoutesStub } from "react-router";
 import { getRandomAccount } from "tests/utils";
 import { test } from "vitest";
 import prisma from "~/db.server";
-import Home, { loader } from "./home";
+import Select, { loader } from "./select";
 
 test("no account configured", async () => {
-  const HomeStub = createRoutesStub([
+  const Stub = createRoutesStub([
     {
       path: "/",
-      Component: Home,
+      Component: Select,
       loader,
       HydrateFallback: () => <div>Loading...</div>,
     },
   ]);
 
-  render(<HomeStub />);
+  render(<Stub />);
 
   await waitFor(() => screen.getByText("No mail account configured."));
   await waitFor(() => screen.getByRole("link", { name: "Configure account" }));
@@ -28,17 +28,18 @@ test("accounts configured", async () => {
     data: [account1, account2],
   });
 
-  const HomeStub = createRoutesStub([
+  const Stub = createRoutesStub([
     {
       path: "/",
-      Component: Home,
+      Component: Select,
       loader,
       HydrateFallback: () => <div>Loading...</div>,
     },
   ]);
 
-  render(<HomeStub />);
+  render(<Stub />);
 
+  await waitFor(() => screen.queryByText("Select account"));
   await waitFor(() => screen.getByText(account1.email));
   await waitFor(() => screen.getByText(account2.email));
 });

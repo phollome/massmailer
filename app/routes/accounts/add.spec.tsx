@@ -2,10 +2,11 @@ import { createRoutesStub } from "react-router";
 import AddAccount, { loader, action } from "./add";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, test } from "vitest";
-import Home from "../home";
+import Select from "../select";
 import prisma from "~/db.server";
 import { act } from "react";
 import Account, { loader as accountLoader } from "../account/$accountId";
+import Mails, { loader as mailsLoader } from "../account/$accountId/mails";
 
 test("failed validation (empty)", async () => {
   const Stub = createRoutesStub([
@@ -74,7 +75,7 @@ test("successful submission", async () => {
   const Stub = createRoutesStub([
     {
       path: "/",
-      Component: Home,
+      Component: Select,
       loader: async () => {
         return { accounts: [] };
       },
@@ -95,6 +96,14 @@ test("successful submission", async () => {
       path: "/account/:accountId",
       Component: Account,
       loader: accountLoader,
+      HydrateFallback: () => {
+        return <div>Loading...</div>;
+      },
+    },
+    {
+      path: "/account/:accountId/mails",
+      Component: Mails,
+      loader: mailsLoader,
       HydrateFallback: () => {
         return <div>Loading...</div>;
       },
