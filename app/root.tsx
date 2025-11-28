@@ -11,6 +11,7 @@ import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { useEffect, useState } from "react";
 import type { Route } from "./+types/root";
+import "./app.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [appearance, setAppearance] = useState<"light" | "dark">("dark");
