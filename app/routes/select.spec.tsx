@@ -18,7 +18,7 @@ test("no account configured", async () => {
   render(<Stub />);
 
   await waitFor(() => screen.getByText("No mail account configured."));
-  await waitFor(() => screen.getByRole("link", { name: "Configure account" }));
+  await waitFor(() => screen.getByRole("link", { name: "Add Account" }));
 });
 
 test("accounts configured", async () => {

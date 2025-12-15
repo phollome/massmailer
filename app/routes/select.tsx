@@ -21,41 +21,32 @@ export function meta({}: Route.MetaArgs) {
 export default function Select() {
   const loaderData = useLoaderData<typeof loader>();
 
-  if (loaderData.accounts.length === 0) {
-    return (
-      <Callout.Root color="red">
-        <Callout.Icon>
-          <InfoCircledIcon />
-        </Callout.Icon>
-        <Callout.Text>
-          No mail account configured.{" "}
-          <LinkStyle asChild>
-            <Link to="/accounts/add" className="Link">
-              Configure account
-            </Link>
-          </LinkStyle>
-        </Callout.Text>
-      </Callout.Root>
-    );
-  }
-
   return (
     <>
       <SitesHeading>Select Account</SitesHeading>
       <Flex direction="column" gap="4" asChild>
-        <ul>
-          {loaderData.accounts.map((account) => {
-            return (
-              <li key={account.id}>
-                <LinkStyle asChild size="4">
-                  <Link to={`/account/${account.id}/mails`}>
-                    {account.email}
-                  </Link>
-                </LinkStyle>
-              </li>
-            );
-          })}
-        </ul>
+        {loaderData.accounts.length > 0 ? (
+          <ul>
+            {loaderData.accounts.map((account) => {
+              return (
+                <li key={account.id}>
+                  <LinkStyle asChild size="4">
+                    <Link to={`/account/${account.id}/mails`}>
+                      {account.email}
+                    </Link>
+                  </LinkStyle>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <Callout.Root color="red">
+            <Callout.Icon>
+              <InfoCircledIcon />
+            </Callout.Icon>
+            <Callout.Text>No mail account configured.</Callout.Text>
+          </Callout.Root>
+        )}
       </Flex>
       <Flex direction="column" gap="2" mt="6">
         <Button size="3" variant="outline" asChild>
