@@ -11,6 +11,7 @@ export async function loader(args: LoaderFunctionArgs) {
 
   const mails = await prisma.mail.findMany({
     where: { accountId },
+    orderBy: { createdAt: "desc" },
   });
 
   return { mails };
@@ -28,7 +29,11 @@ function MailList() {
           {loaderData.mails.map((mail) => (
             <DataList.Item key={mail.id}>
               <DataList.Label>Subject</DataList.Label>
-              <Text>{mail.subject}</Text>
+              <LinkStyle asChild key={mail.id}>
+                <Link to={`/mail/${mail.id}`}>
+                  <Text>{mail.subject}</Text>
+                </Link>
+              </LinkStyle>
             </DataList.Item>
           ))}
         </DataList.Root>

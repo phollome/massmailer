@@ -29,9 +29,9 @@ function Account() {
   return (
     <>
       <Text as="p" size="1" align="right">
-        Selected account: <Strong>{loaderData.account.email}</Strong>{" "}
+        Selected account: <Strong>{loaderData.account.email}</Strong> <br />
         <LinkStyle asChild>
-          <Link to="/">(Back to selection)</Link>
+          <Link to="/">Back to account selection</Link>
         </LinkStyle>
       </Text>
       <TabNav.Root size="2">

@@ -4,6 +4,7 @@ import {
   randEmail,
   randEmailProvider,
   randPassword,
+  randText,
   randUuid,
 } from "@ngneat/falso";
 
@@ -19,4 +20,13 @@ export function getRandomAccount() {
     port: rand([25, 465, 587]),
   };
   return account;
+}
+
+export function getRandomMail() {
+  const mail = {
+    id: randUuid(),
+    subject: randText({ charCount: 10 }),
+    body: randText({ charCount: 100 }),
+  };
+  return mail;
 }
