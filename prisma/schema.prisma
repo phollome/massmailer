@@ -16,25 +16,40 @@ model Account {
     contacts  Contact[]
     mails     Mail[]
     createdAt DateTime  @default(now()) @map("created_at")
-    updatedAt DateTime  @updatedAt @map("updated_at")
+    updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
 }
 
 model Contact {
-    id        String   @id @default(uuid())
-    email     String   @unique
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-    account   Account? @relation(fields: [accountId], references: [id])
+    id        String            @id @default(uuid())
+    email     String            @unique
+    createdAt DateTime          @default(now()) @map("created_at")
+    updatedAt DateTime          @default(now()) @updatedAt @map("updated_at")
+    account   Account?          @relation(fields: [accountId], references: [id])
     accountId String?
+    mails     RecipientOfMail[]
 }
 
 model Mail {
-    id        String    @id @default(uuid())
-    subject   String
-    body      String
-    sentAt    DateTime? @map("sent_at")
-    createdAt DateTime  @default(now()) @map("created_at")
-    updatedAt DateTime  @updatedAt @map("updated_at")
-    account   Account?  @relation(fields: [accountId], references: [id])
-    accountId String?
+    id         String            @id @default(uuid())
+    subject    String
+    body       String
+    process    Boolean           @default(false)
+    completed  Boolean           @default(false)
+    account    Account?          @relation(fields: [accountId], references: [id])
+    accountId  String?
+    createdAt  DateTime          @default(now()) @map("created_at")
+    updatedAt  DateTime          @updatedAt @map("updated_at")
+    recipients RecipientOfMail[]
+}
+
+model RecipientOfMail {
+    mailId    String
+    contactId String
+    mail      Mail     @relation(fields: [mailId], references: [id], onDelete: Cascade)
+    contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+    @@id([mailId, contactId])
+    @@map("recipients_of_mails")
 }

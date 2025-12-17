@@ -30,3 +30,11 @@ export function getRandomMail() {
   };
   return mail;
 }
+
+export function getRandomContact() {
+  const contact = {
+    id: randUuid(),
+    email: randEmail(),
+  };
+  return contact;
+}

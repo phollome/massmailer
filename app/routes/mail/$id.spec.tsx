@@ -1,18 +1,19 @@
 import { createRoutesStub } from "react-router";
-import Mail, { loader, action } from "./$id";
+import { default as Component, loader, action } from "./$id";
 import { expect, test } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ErrorBoundary } from "~/root";
 import prisma from "~/db.server";
-import { getRandomMail } from "tests/utils";
+import { getRandomAccount, getRandomContact, getRandomMail } from "tests/utils";
 import { act } from "react";
+import type { Account, Contact, Mail } from "@prisma/client";
 
 test("mail not found", async () => {
   const Stub = createRoutesStub([
     {
       path: "/mail/1",
       loader,
-      Component: Mail,
+      Component,
       ErrorBoundary: ErrorBoundary,
       HydrateFallback: () => <div>Loading...</div>,
     },
@@ -29,7 +30,7 @@ test("mail found", async () => {
     {
       path: "/mail/:id",
       loader,
-      Component: Mail,
+      Component,
       HydrateFallback: () => <div>Loading...</div>,
       ErrorBoundary,
     },
@@ -57,7 +58,7 @@ test("edit mail", async () => {
       path: "/mail/:id",
       loader,
       action,
-      Component: Mail,
+      Component,
       HydrateFallback: () => <div>Loading...</div>,
       ErrorBoundary,
     },
@@ -86,11 +87,74 @@ test("edit mail", async () => {
     fireEvent.input(body, { target: { value: dataToUpdate.body } });
   });
 
-  const save = await waitFor(() =>
+  const updateButton = await waitFor(() =>
     screen.getByRole("button", { name: "Update" }),
   );
-  await act(async () => save.click());
+  await act(async () => updateButton.click());
 
   await waitFor(() => expect(subject.value).toBe(dataToUpdate.subject));
   await waitFor(() => expect(body.value).toBe(dataToUpdate.body));
+});
+
+test("add recipients", async () => {
+  const Stub = createRoutesStub([
+    {
+      path: "/mail/:id",
+      loader,
+      action,
+      Component,
+      HydrateFallback: () => <div>Loading...</div>,
+      ErrorBoundary,
+    },
+  ]);
+
+  const account = await waitFor(() =>
+    prisma.account.create({
+      data: getRandomAccount(),
+    }),
+  );
+
+  const mail = await waitFor(() =>
+    prisma.mail.create({
+      data: {
+        ...getRandomMail(),
+        accountId: account.id,
+      },
+    }),
+  );
+  const contact = await waitFor(() =>
+    prisma.contact.create({
+      data: {
+        ...getRandomContact(),
+        accountId: account.id,
+      },
+    }),
+  );
+
+  render(<Stub initialEntries={[`/mail/${mail.id}`]} />);
+
+  const contactCheckbox = await waitFor(() =>
+    screen.getByLabelText(contact.email),
+  );
+
+  await act(async () => {
+    fireEvent.click(contactCheckbox);
+  });
+
+  const updateButton = await waitFor(() =>
+    screen.getByRole("button", { name: "Update" }),
+  );
+
+  await act(async () => updateButton.click());
+
+  await waitFor(async () => {
+    const recipientOfMail = await prisma.recipientOfMail.findFirst({
+      where: {
+        mailId: mail.id,
+        contactId: contact.id,
+      },
+    });
+
+    expect(recipientOfMail).not.toBeNull();
+  });
 });
