@@ -9,6 +9,7 @@ import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
 import { invariantResponse } from "@epic-web/invariant";
 import {
   Button,
+  Checkbox,
   Flex,
   Link as LinkStyle,
   Text,
@@ -35,7 +36,13 @@ const schema = z.object({
   body: z
     .string({ message: "Body is required" })
     .min(1, { message: "Body is required" }),
-  recipients: z.array(z.uuid()),
+  // Handle multi select issue where single selection comes as string instead of array
+  recipients: z.preprocess((value) => {
+    if (typeof value === "string") {
+      return [value];
+    }
+    return value;
+  }, z.array(z.string())),
 });
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -115,33 +122,39 @@ export async function action(args: LoaderFunctionArgs) {
 
 function Mail() {
   const loaderData = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
-  const isHydrated = useHydrated();
 
-  // FIXME: dirty state works if no recipients are selected or only one
+  const actionData = useActionData<typeof action>();
+
   const [form, fields] = useForm({
     id: `mail-edit-form-${loaderData.ts}`,
     constraint: getZodConstraint(schema),
     defaultValue: {
       subject: loaderData.mail.subject,
       body: loaderData.mail.body,
-      recipients:
-        // We need this because single selection returns a string, multiple an array
-        // FIXME: Doesn't solve the multiple selection dirty state issue
-        loaderData.mail.recipients.length === 1
-          ? loaderData.mail.recipients[0].contact.id
-          : loaderData.mail.recipients.map((recipient) => {
-              return recipient.contact.id;
-            }),
     },
     onValidate: (context) => {
       const submission = parseWithZod(context.formData, { schema });
+      console.log("onValidate submission:", submission);
       return submission;
     },
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
     lastResult: actionData,
   });
+
+  // Check js available
+  const isHydrated = useHydrated();
+
+  // Track dirty state
+  const [dirty, setDirty] = useState(false);
+  const handleFormChange = () => {
+    setDirty(true);
+  };
+
+  // Reset dirty state when loaderData.ts changes (i.e., after successful update)
+  useEffect(() => {
+    setDirty(false);
+  }, [loaderData.ts]);
 
   return (
     <>
@@ -152,7 +165,7 @@ function Mail() {
           </Link>
         </LinkStyle>
       </Text>
-      <Form method="post" {...getFormProps(form)}>
+      <Form method="post" {...getFormProps(form)} onChange={handleFormChange}>
         <Flex gap="2" direction="column">
           <Text as="label" size="2" weight="bold" htmlFor={fields.subject.id}>
             Subject
@@ -192,10 +205,29 @@ function Mail() {
               return null;
             }
 
+            const checked = loaderData.mail.recipients.some((recipient) => {
+              return recipient.contact.id === contact.id;
+            });
+
             return (
               <Text key={key} as="label" size="2">
                 <Flex gap="2" align="center">
-                  <input type="checkbox" {...otherProps} />
+                  {
+                    // Use Checkbox component if js is available
+                    isHydrated ? (
+                      <Checkbox
+                        {...otherProps}
+                        defaultChecked={checked}
+                        size="1"
+                      />
+                    ) : (
+                      <input
+                        type="checkbox"
+                        {...otherProps}
+                        defaultChecked={checked}
+                      />
+                    )
+                  }
                   <Text as="div">{contact.email}</Text>
                 </Flex>
               </Text>
@@ -205,8 +237,10 @@ function Mail() {
             type="submit"
             name="intent"
             value="update"
+            data-testid="mail-update-button"
+            // Only handle disable state if js is available
             disabled={
-              isHydrated ? form.dirty === false || form.valid === false : false
+              isHydrated ? dirty === false || form.valid === false : false
             }
           >
             Update
