@@ -184,7 +184,7 @@ function Mail() {
     setDirty(false);
   }, [loaderData.ts]);
 
-  const readOnly = loaderData.mail.completed || loaderData.mail.process;
+  const readOnly = loaderData.mail.complete || loaderData.mail.process;
 
   return (
     <>

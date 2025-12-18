@@ -34,7 +34,7 @@ model Mail {
     subject    String
     body       String
     process    Boolean           @default(false)
-    completed  Boolean           @default(false)
+    complete   Boolean           @default(false)
     account    Account?          @relation(fields: [accountId], references: [id])
     accountId  String?
     createdAt  DateTime          @default(now()) @map("created_at")
@@ -47,6 +47,8 @@ model RecipientOfMail {
     contactId String
     mail      Mail     @relation(fields: [mailId], references: [id], onDelete: Cascade)
     contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+    sent      Boolean  @default(false)
+    failed    Boolean  @default(false)
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
