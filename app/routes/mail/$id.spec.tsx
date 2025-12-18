@@ -158,3 +158,63 @@ test("add recipients", async () => {
     expect(recipientOfMail).not.toBeNull();
   });
 });
+
+test("process mail", async () => {
+  const account = await waitFor(() =>
+    prisma.account.create({
+      data: getRandomAccount(),
+    }),
+  );
+
+  const mail = await waitFor(() =>
+    prisma.mail.create({
+      data: {
+        ...getRandomMail(),
+        accountId: account.id,
+      },
+    }),
+  );
+
+  const contact = await waitFor(() =>
+    prisma.contact.create({
+      data: {
+        ...getRandomContact(),
+        accountId: account.id,
+      },
+    }),
+  );
+
+  await waitFor(() =>
+    prisma.recipientOfMail.create({
+      data: {
+        mailId: mail.id,
+        contactId: contact.id,
+      },
+    }),
+  );
+
+  const Stub = createRoutesStub([
+    {
+      path: "/mail/:id",
+      loader,
+      action,
+      Component,
+      HydrateFallback: () => <div>Loading...</div>,
+      ErrorBoundary,
+    },
+  ]);
+
+  render(<Stub initialEntries={[`/mail/${mail.id}`]} />);
+
+  const processButton = await waitFor(() =>
+    screen.getByRole("button", { name: "Process" }),
+  );
+  await act(async () => processButton.click());
+
+  await waitFor(async () => {
+    const mailToProcess = await prisma.mail.findUnique({
+      where: { id: mail.id, process: true },
+    });
+    expect(mailToProcess).not.toBeNull();
+  });
+});

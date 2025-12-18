@@ -12,6 +12,7 @@ import {
   Checkbox,
   Flex,
   Link as LinkStyle,
+  Spinner,
   Text,
   TextArea,
   TextField,
@@ -44,6 +45,13 @@ const schema = z.object({
     return value;
   }, z.array(z.string())),
 });
+
+const IntentKey = "intent";
+
+const Intents = {
+  Update: "update",
+  Process: "process",
+};
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params } = args;
@@ -84,9 +92,13 @@ export async function action(args: LoaderFunctionArgs) {
 
   const formData = await request.formData();
 
-  const intent = formData.get("intent");
+  const intent = formData.get(IntentKey);
 
-  invariantResponse(intent === "update", "Invalid intent", { status: 400 });
+  invariantResponse(
+    intent === Intents.Update || intent === Intents.Process,
+    "Invalid intent",
+    { status: 400 },
+  );
 
   const submission = await parseWithZod(formData, {
     schema: schema,
@@ -96,7 +108,7 @@ export async function action(args: LoaderFunctionArgs) {
     return submission.reply();
   }
 
-  if (intent === "update") {
+  if (intent === Intents.Update) {
     try {
       const mail = await prisma.mail.update({
         where: { id },
@@ -117,7 +129,24 @@ export async function action(args: LoaderFunctionArgs) {
       // TODO: Add error flash message
       throw new Response("Failed to update mail", { status: 500 });
     }
+  } else if (intent === Intents.Process) {
+    try {
+      const mail = await prisma.mail.update({
+        where: { id },
+        data: {
+          process: true,
+        },
+      });
+      // TODO: Add success flash message
+      return redirect(`/mail/${mail.id}`);
+    } catch (error) {
+      // TODO: Add error flash message
+      throw new Response("Failed to process mail", { status: 500 });
+    }
   }
+
+  // TODO: Add flash message for unknown intent
+  return redirect(`/mail/${id}`);
 }
 
 function Mail() {
@@ -134,7 +163,6 @@ function Mail() {
     },
     onValidate: (context) => {
       const submission = parseWithZod(context.formData, { schema });
-      console.log("onValidate submission:", submission);
       return submission;
     },
     shouldValidate: "onBlur",
@@ -156,6 +184,8 @@ function Mail() {
     setDirty(false);
   }, [loaderData.ts]);
 
+  const readOnly = loaderData.mail.completed || loaderData.mail.process;
+
   return (
     <>
       <Text as="p" size="1" align="right">
@@ -172,6 +202,7 @@ function Mail() {
           </Text>
           <TextField.Root
             {...getInputProps(fields.subject, { type: "text" })}
+            disabled={readOnly}
           />
           {Array.isArray(fields.subject.errors) &&
             fields.subject.errors.length > 0 && (
@@ -182,7 +213,7 @@ function Mail() {
           <Text as="label" size="2" weight="bold" htmlFor={fields.body.id}>
             Body
           </Text>
-          <TextArea {...getTextareaProps(fields.body)} />
+          <TextArea {...getTextareaProps(fields.body)} disabled={readOnly} />
           {Array.isArray(fields.body.errors) &&
             fields.body.errors.length > 0 && (
               <Text color="red" size="1">
@@ -219,12 +250,14 @@ function Mail() {
                         {...otherProps}
                         defaultChecked={checked}
                         size="1"
+                        disabled={readOnly}
                       />
                     ) : (
                       <input
                         type="checkbox"
                         {...otherProps}
                         defaultChecked={checked}
+                        disabled={readOnly}
                       />
                     )
                   }
@@ -235,15 +268,32 @@ function Mail() {
           })}
           <Button
             type="submit"
-            name="intent"
-            value="update"
+            name={IntentKey}
+            value={Intents.Update}
             data-testid="mail-update-button"
             // Only handle disable state if js is available
             disabled={
-              isHydrated ? dirty === false || form.valid === false : false
+              (isHydrated ? dirty === false || form.valid === false : false) ||
+              readOnly
             }
           >
             Update
+          </Button>
+          <Button
+            type="submit"
+            color="green"
+            name={IntentKey}
+            value={Intents.Process}
+            data-testid="mail-process-button"
+            // Only handle disable state if js is available
+            disabled={
+              (isHydrated && dirty) ||
+              loaderData.mail.recipients.length === 0 ||
+              readOnly
+            }
+          >
+            Process
+            <Spinner loading={loaderData.mail.process}></Spinner>
           </Button>
           {Array.isArray(form.errors) && form.errors.length > 0 && (
             <Text color="red" size="1">
